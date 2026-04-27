@@ -27,3 +27,14 @@ def clean_loan_data(df):
     df_clean['JOB'] = df_clean['JOB'].fillna('Other')
     
     return df_clean
+
+def get_correlations(df):
+    """
+    Calculates how much each feature relates to the 'BAD' (Default) column.
+    We exclude non-numeric columns for this calculation.
+    """
+    # Select only numeric columns
+    numeric_df = df.select_dtypes(include=['number'])
+    # Get correlation with the target 'BAD' and sort it
+    corr = numeric_df.corr()['BAD'].sort_values(ascending=False)
+    return corr
