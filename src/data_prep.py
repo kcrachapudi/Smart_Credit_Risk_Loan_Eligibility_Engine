@@ -82,3 +82,16 @@ def train_loan_model(X_train, y_train):
     model = RandomForestClassifier(n_estimators=100, random_state=42, class_weight='balanced')
     model.fit(X_train, y_train)
     return model
+
+def predict_eligibility(model, input_df, feature_columns):
+    """
+    Takes raw user input, aligns it with the training columns,
+    and returns the probability of default.
+    """
+    # 1. Align columns (ensures Job/Reason columns exist even if not used)
+    input_df = input_df.reindex(columns=feature_columns, fill_value=0)
+    
+    # 2. Get the probability of [Class 0, Class 1]
+    # We use .tolist() to make it easier for Streamlit to handle
+    prob = model.predict_proba(input_df)
+    return prob

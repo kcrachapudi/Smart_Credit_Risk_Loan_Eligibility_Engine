@@ -125,3 +125,53 @@ if 'X_train' in st.session_state:
         st.bar_chart(importances)
 else:
     st.info("👆 Please split the data in Phase 5 first.")
+
+
+# --- PHASE 7: LIVE ELIGIBILITY CHECKER ---
+st.divider()
+st.header("Phase 7: Real-Time Loan Eligibility Checker")
+st.markdown("#### *Test the Model with Custom Applicant Data*")
+
+if 'loan_model' in st.session_state:
+    with st.container():
+        col1, col2, col3 = st.columns(3)
+        
+        # User Inputs
+        loan_amt = col1.number_input("Loan Amount ($)", value=20000)
+        mortdue = col2.number_input("Mortgage Due ($)", value=50000)
+        value = col3.number_input("Property Value ($)", value=85000)
+        
+        col4, col5, col6 = st.columns(3)
+        debtinc = col4.slider("Debt-to-Income Ratio (%)", 0, 100, 25)
+        clage = col5.slider("Credit History (Months)", 0, 600, 150)
+        # Fix: Added the options [0, 1, 2, 3, 4, 5] for the dropdown
+        delinq = col6.selectbox("Recent Delinquencies", options=[0, 1, 2, 3, 4, 5])
+
+    if st.button("🔍 Check Eligibility"):
+        from src.data_prep import predict_eligibility
+        
+        user_input = pd.DataFrame({
+            'LOAN': [loan_amt], 'MORTDUE': [mortdue], 'VALUE': [value],
+            'DEBTINC': [debtinc], 'CLAGE': [clage], 'DELINQ': [delinq]
+        })
+        
+        # Get the prediction array
+        risk_probs = predict_eligibility(
+            st.session_state.loan_model, 
+            user_input, 
+            st.session_state.X_train.columns
+        )
+        
+        # SAFE UNPACKING:
+        # Scikit-learn usually returns [[p0, p1]]. 
+        # We flatten it to [p0, p1] and take the second value.
+        default_prob = risk_probs.flatten()[1] 
+        
+        st.subheader(f"Risk Probability: {default_prob:.1%}")
+        
+        if default_prob < 0.3:
+            st.success("✅ LOAN APPROVED: Low risk of default.")
+        elif default_prob < 0.6:
+            st.warning("⚠️ MANUAL REVIEW REQUIRED: Moderate risk level.")
+        else:
+            st.error("❌ LOAN REJECTED: High risk of default detected.")
