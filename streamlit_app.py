@@ -10,7 +10,8 @@ from src.data_prep import (
     get_correlations, 
     encode_categories, 
     split_loan_data,
-    train_loan_model
+    train_loan_model,
+    predict_eligibility
 )
 
 # --- PAGE CONFIG ---
@@ -148,7 +149,6 @@ if 'loan_model' in st.session_state:
         delinq = col6.selectbox("Recent Delinquencies", options=[0, 1, 2, 3, 4, 5])
 
     if st.button("🔍 Check Eligibility"):
-        from src.data_prep import predict_eligibility
         
         user_input = pd.DataFrame({
             'LOAN': [loan_amt], 'MORTDUE': [mortdue], 'VALUE': [value],
