@@ -38,3 +38,47 @@ def get_correlations(df):
     # Get correlation with the target 'BAD' and sort it
     corr = numeric_df.corr()['BAD'].sort_values(ascending=False)
     return corr
+
+
+from sklearn.model_selection import train_test_split
+
+def split_loan_data(df):
+    """
+    Splits data into Features (X) and Target (y), 
+    then into Training and Testing sets.
+    """
+    # X = everything except the target 'BAD'
+    X = df.drop('BAD', axis=1)
+    # y = only the 'BAD' column
+    y = df['BAD']
+    
+    # Stratify ensures the 80/20 'paid/default' ratio is preserved in both sets
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42, stratify=y
+    )
+    
+    return X_train, X_test, y_train, y_test
+
+
+# src/data_prep.py (Add this if it's missing!)
+
+def encode_categories(df):
+    """
+    Converts 'REASON' and 'JOB' into numerical columns 
+    so the Machine Learning model can process them.
+    """
+    import pandas as pd
+    # This creates new columns like JOB_Office, JOB_Sales, etc.
+    df_encoded = pd.get_dummies(df, columns=['REASON', 'JOB'], drop_first=True)
+    return df_encoded
+
+from sklearn.ensemble import RandomForestClassifier
+
+def train_loan_model(X_train, y_train):
+    """
+    Trains a Random Forest model to predict loan default.
+    """
+    # random_state=42 ensures you get the same result every time you run it
+    model = RandomForestClassifier(n_estimators=100, random_state=42, class_weight='balanced')
+    model.fit(X_train, y_train)
+    return model
